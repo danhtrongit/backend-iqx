@@ -1,3 +1,5 @@
+require('dotenv').config(); // QUAN TRỌNG: Load .env file trước
+
 module.exports = {
   apps: [
     {
@@ -12,8 +14,16 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 2024,
         HOST: '0.0.0.0',
+        // Sửa lại password đúng trong DATABASE_URL
         DATABASE_URL: process.env.DATABASE_URL || 'postgresql://postgres:Timem.2302@localhost:5432/iqx_app',
+        DB_HOST: process.env.DB_HOST || 'localhost',
+        DB_PORT: process.env.DB_PORT || 5432,
+        DB_NAME: process.env.DB_NAME || 'iqx_app',
+        DB_USER: process.env.DB_USER || 'postgres',
+        DB_PASSWORD: process.env.DB_PASSWORD || 'Timem.2302',
+        DB_SSL: process.env.DB_SSL || false,
         JWT_SECRET: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
+        JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-key-change-this-in-production',
         JWT_ACCESS_EXPIRY: '15m',
         JWT_REFRESH_EXPIRY: '7d',
         CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
@@ -22,7 +32,11 @@ module.exports = {
         RATE_LIMIT_TIME_WINDOW: '1 minute',
         LOG_LEVEL: 'info',
         SWAGGER_HOST: 'localhost:2024',
-        SWAGGER_SCHEMES: 'http,https'
+        SWAGGER_SCHEMES: 'http,https',
+        // Thêm các biến proxy
+        PROXY_IQ_TARGET: process.env.PROXY_IQ_TARGET || 'https://iq.vietcap.com.vn',
+        PROXY_TRADING_TARGET: process.env.PROXY_TRADING_TARGET || 'https://trading.vietcap.com.vn',
+        PROXY_AI_TARGET: process.env.PROXY_AI_TARGET || 'https://ai.vietcap.com.vn'
       },
       env_development: {
         NODE_ENV: 'development',
