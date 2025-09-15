@@ -27,7 +27,20 @@ export async function buildServer(): Promise<FastifyInstance> {
   });
 
   await app.register(import('@fastify/cors'), {
-    origin: "*",
+    origin: (origin, cb) => {
+      // Allow requests with no origin (like mobile apps or Postman)
+      if (!origin) {
+        return cb(null, true);
+      }
+      
+      // Check if the origin is in the allowed list
+      const allowedOrigins = config.CORS_ORIGIN;
+      if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: config.CORS_CREDENTIALS,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
