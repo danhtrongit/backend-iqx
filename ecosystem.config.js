@@ -12,7 +12,7 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 2024,
         HOST: '0.0.0.0',
-        DATABASE_URL: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/fastify_db',
+        DATABASE_URL: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/iqx_app',
         JWT_SECRET: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
         JWT_ACCESS_EXPIRY: '15m',
         JWT_REFRESH_EXPIRY: '7d',
@@ -42,14 +42,14 @@ module.exports = {
       min_uptime: '10s',
       max_restarts: 10,
       kill_timeout: 5000,
-      
+
       // Performance optimizations
       node_args: '--max-old-space-size=1024',
-      
+
       // Graceful shutdown
       listen_timeout: 3000,
       shutdown_with_message: true,
-      
+
       // Health check
       cron_restart: '0 3 * * *', // Restart every day at 3 AM
     }
