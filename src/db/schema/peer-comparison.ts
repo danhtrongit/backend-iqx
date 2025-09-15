@@ -4,9 +4,12 @@ import { stockSymbols } from './stock-symbols';
 export const peerComparison = pgTable('peer_comparison', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   
-  // Symbol reference
-  symbol: varchar('symbol', { length: 10 }).notNull()
-    .references(() => stockSymbols.symbol, { onDelete: 'cascade' }),
+  // Symbol reference - storing as varchar for easier queries
+  symbol: varchar('symbol', { length: 10 }).notNull(),
+  
+  // Foreign key to stock_symbols table
+  stockSymbolId: integer('stock_symbol_id')
+    .references(() => stockSymbols.id, { onDelete: 'cascade' }),
   
   // The ticker being compared (could be the symbol itself or "Median")
   ticker: varchar('ticker', { length: 50 }).notNull(),
