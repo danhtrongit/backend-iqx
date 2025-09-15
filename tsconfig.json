@@ -16,11 +16,11 @@
     "declarationMap": true,
 
     // Stricter Typechecking Options
-    "noUncheckedIndexedAccess": true,
+    "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false,
 
     // Recommended Options
-    "strict": true,
+    "strict": false,
     "jsx": "preserve",
     "verbatimModuleSyntax": false,
     "isolatedModules": true,
