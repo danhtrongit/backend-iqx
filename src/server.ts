@@ -23,7 +23,15 @@ export async function buildServer(): Promise<FastifyInstance> {
 
   // Register plugins
   await app.register(import('@fastify/helmet'), {
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: config.NODE_ENV === 'production' ? {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "validator.swagger.io"],
+        connectSrc: ["'self'"],
+      },
+    } : false, // Disable CSP in development for Swagger UI
   });
 
   await app.register(import('@fastify/cors'), {
@@ -106,7 +114,7 @@ export async function buildServer(): Promise<FastifyInstance> {
         docExpansion: 'list',
         deepLinking: true,
       },
-      staticCSP: true,
+      staticCSP: false, // Disable CSP for Swagger UI to work properly
       transformSpecificationClone: true,
     });
   }
@@ -145,6 +153,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(import('./routes/stock-symbols'), { prefix: '/api/stocks' });
   await app.register(import('./routes/favorites'), { prefix: '/api/favorites' });
   await app.register(import('./routes/peer-comparison'), { prefix: '/api' });
+  await app.register(import('./routes/analysis-reports'), { prefix: '/api/analysis-reports' });
   await app.register(import('./routes/proxy'), { prefix: '/proxy' });
 
   return app;
