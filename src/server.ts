@@ -154,6 +154,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(import('./routes/favorites'), { prefix: '/api/favorites' });
   await app.register(import('./routes/peer-comparison'), { prefix: '/api' });
   await app.register(import('./routes/analysis-reports'), { prefix: '/api/analysis-reports' });
+  await app.register(import('./routes/earning-results'), { prefix: '/api' });
   await app.register(import('./routes/proxy'), { prefix: '/proxy' });
 
   return app;

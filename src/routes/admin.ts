@@ -45,8 +45,8 @@ const getUsersQuerySchema = z.object({
 });
 
 export default async function adminRoutes(app: FastifyInstance) {
-  // Get all users (admin only)
-  app.get('/users', {
+  // Admin dashboard - Get basic statistics
+  app.get('/dashboard', {
     preHandler: [app.authenticate, requireAdmin],
     schema: {
       querystring: {

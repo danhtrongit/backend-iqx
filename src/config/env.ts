@@ -42,6 +42,9 @@ const envSchema = z.object({
   PROXY_IQ_TARGET: z.string().url().default('https://iq.vietcap.com.vn'),
   PROXY_TRADING_TARGET: z.string().url().default('https://trading.vietcap.com.vn'),
   PROXY_AI_TARGET: z.string().url().default('https://ai.vietcap.com.vn'),
+  
+  // VietCap API Authentication
+  VIETCAP_BEARER_TOKEN: z.string().optional(),
 });
 
 export type Config = z.infer<typeof envSchema>;
