@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { StockSymbolsService } from '../services/stock-symbols.service';
+import { VietCapMarketDataService } from '../services/vietcap-market-data.service';
 import { quickSearchSymbols, getSymbolsByPrefix, findExactSymbol } from '../services/stock-symbols-quick-search';
 
 // Request/Response schemas
@@ -19,8 +20,22 @@ const importSymbolsBodySchema = z.object({
   force: z.boolean().default(false),
 });
 
+const symbolsWithPricesQuerySchema = z.object({
+  query: z.string().optional(),
+  symbol: z.string().optional(),
+  board: z.enum(['HSX', 'HNX', 'UPCOM']).optional(),
+  type: z.enum(['STOCK', 'FUND', 'BOND', 'ETF', 'COVERED_WARRANT']).optional(),
+  limit: z.coerce.number().min(1).max(100).default(20),
+  offset: z.coerce.number().min(0).default(0),
+  sortBy: z.enum(['symbol', 'organName', 'board', 'type']).default('symbol'),
+  sortOrder: z.enum(['asc', 'desc']).default('asc'),
+  timeFrame: z.enum(['ONE_MINUTE', 'ONE_DAY', 'ONE_HOUR']).default('ONE_DAY'),
+  includePrices: z.coerce.boolean().default(true),
+});
+
 export default async function stockSymbolsRoutes(app: FastifyInstance) {
   const stockSymbolsService = new StockSymbolsService(app);
+  const vietCapService = new VietCapMarketDataService(app);
 
   // Search stock symbols
   app.get('/search', {
@@ -411,5 +426,122 @@ export default async function stockSymbolsRoutes(app: FastifyInstance) {
       byBoard,
       byType,
     });
+  });
+
+  // Get symbols with prices (new endpoint with VietCap price data)
+  app.get('/with-prices', {
+    schema: {
+      querystring: {
+        type: 'object',
+        properties: {
+          query: { type: 'string' },
+          symbol: { type: 'string' },
+          board: { type: 'string', enum: ['HSX', 'HNX', 'UPCOM'] },
+          type: { type: 'string', enum: ['STOCK', 'FUND', 'BOND', 'ETF', 'COVERED_WARRANT'] },
+          limit: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
+          offset: { type: 'integer', minimum: 0, default: 0 },
+          sortBy: { type: 'string', enum: ['symbol', 'organName', 'board', 'type'], default: 'symbol' },
+          sortOrder: { type: 'string', enum: ['asc', 'desc'], default: 'asc' },
+          timeFrame: { type: 'string', enum: ['ONE_MINUTE', 'ONE_DAY', 'ONE_HOUR'], default: 'ONE_DAY' },
+          includePrices: { type: 'boolean', default: true },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'integer' },
+                  symbol: { type: 'string' },
+                  type: { type: 'string' },
+                  board: { type: 'string' },
+                  enOrganName: { type: ['string', 'null'] },
+                  enOrganShortName: { type: ['string', 'null'] },
+                  organShortName: { type: ['string', 'null'] },
+                  organName: { type: ['string', 'null'] },
+                  productGrpID: { type: ['string', 'null'] },
+                  createdAt: { type: 'string' },
+                  updatedAt: { type: 'string' },
+                  priceData: {
+                    type: 'object',
+                    properties: {
+                      currentPrice: { type: ['number', 'null'] },
+                      openPrice: { type: ['number', 'null'] },
+                      highPrice: { type: ['number', 'null'] },
+                      lowPrice: { type: ['number', 'null'] },
+                      volume: { type: ['number', 'null'] },
+                      accumulatedVolume: { type: ['number', 'null'] },
+                      accumulatedValue: { type: ['number', 'null'] },
+                      lastUpdate: { type: ['string', 'null'] },
+                    },
+                  },
+                },
+              },
+            },
+            total: { type: 'integer' },
+            limit: { type: 'integer' },
+            offset: { type: 'integer' },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
+    try {
+      const params = symbolsWithPricesQuerySchema.parse(request.query);
+      
+      // First get symbols from database
+      const symbolsResult = await stockSymbolsService.searchSymbols({
+        query: params.query,
+        symbol: params.symbol,
+        board: params.board,
+        type: params.type,
+        limit: params.limit,
+        offset: params.offset,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+      });
+
+      // If no symbols found or prices not requested, return symbols only
+      if (symbolsResult.data.length === 0 || !params.includePrices) {
+        return reply.send({
+          data: symbolsResult.data,
+          total: symbolsResult.total,
+          limit: symbolsResult.limit,
+          offset: symbolsResult.offset,
+        });
+      }
+
+      // Get symbols with prices
+      const symbolsWithPrices = await vietCapService.getSymbolsWithPrices(
+        symbolsResult.data,
+        params.timeFrame
+      );
+
+      return reply.send({
+        data: symbolsWithPrices,
+        total: symbolsResult.total,
+        limit: symbolsResult.limit,
+        offset: symbolsResult.offset,
+      });
+
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.code(400).send({
+          error: 'Validation Error',
+          message: 'Invalid query parameters',
+          details: error.errors,
+        });
+      }
+      
+      app.log.error('Error in symbols with prices endpoint:', error);
+      return reply.code(500).send({
+        error: 'Internal Server Error',
+        message: 'Failed to fetch symbols with prices',
+      });
+    }
   });
 }

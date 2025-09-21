@@ -33,7 +33,6 @@ async function seedStockSymbols() {
     const currentCount = await stockSymbolsService.getSymbolCount();
     
     if (currentCount > 0) {
-      app.log.info(`Stock symbols table already contains ${currentCount} records`);
       const answer = process.argv.includes('--force');
       
       if (!answer) {
