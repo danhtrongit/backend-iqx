@@ -34,12 +34,40 @@ export async function buildServer(): Promise<FastifyInstance> {
     } : false, // Disable CSP in development for Swagger UI
   });
 
-  // CORS enabled with wildcard origin for development/testing
+  // CORS enabled with credentials support
   await app.register(import('@fastify/cors'), {
-    origin: true, // Allow all origins
-    credentials: false, // Disable credentials for wildcard origin
+    origin: (origin, cb) => {
+      // Allow requests with no origin (like mobile apps or Postman)
+      if (!origin) {
+        return cb(null, true);
+      }
+      
+      // For development, allow all localhost origins and common dev domains
+      const allowedOrigins = [
+        'http://localhost:8080',
+        'http://localhost:3000', 
+        'http://localhost:3001',
+        'http://localhost:4200',
+        'http://localhost:5173',
+        'http://127.0.0.1:8080',
+        'https://proxy.iqx.vn',
+        ...config.CORS_ORIGIN.filter(origin => origin !== '*')
+      ];
+      
+      // Allow all localhost ports for development
+      if (origin.match(/^https?:\/\/localhost:\d+$/) || origin.match(/^https?:\/\/127\.0\.0\.1:\d+$/)) {
+        return cb(null, true);
+      }
+      
+      if (allowedOrigins.includes(origin) || config.CORS_ORIGIN.includes('*')) {
+        cb(null, true);
+      } else {
+        cb(null, true); // For now, allow all origins
+      }
+    },
+    credentials: true, // Enable credentials support
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
   });
 
   await app.register(import('@fastify/sensible'));
