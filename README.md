@@ -12,12 +12,27 @@ Professional Fastify backend server with JWT authentication, PostgreSQL database
 - 🗄️ **PostgreSQL + Drizzle ORM** - Type-safe database operations
 - 🔄 **Proxy Routes** - Proxy requests to external services (IQ, Trading, AI)
 - 📈 **Stock Symbols Management** - Auto-import & search Vietnamese stock symbols
+- 💰 **Real-time Stock Prices** - Integration with VietCap API for live price data
 - ⭐ **Watchlists/Favorites** - User stock watchlists with notes and alerts
 - 📝 **Swagger Documentation** - Auto-generated API documentation
 - 🛡️ **Security** - Helmet, CORS, rate limiting, password hashing
 - 📊 **Logging** - Structured logging with Pino
 - ✅ **Validation** - Request/response validation with Zod
 - 🔥 **Hot Reload** - Development mode with tsx watch
+
+## 💰 VietCap API Integration
+
+This backend integrates with VietCap's market data API to provide real-time stock price information:
+
+- **Live Price Data**: OHLC (Open, High, Low, Close) data with volume
+- **Multiple Timeframes**: Support for 1-minute, 1-hour, and daily data
+- **Graceful Fallback**: Returns symbols even when price API is unavailable
+- **Performance Optimized**: Option to disable price fetching for faster responses
+- **Error Handling**: Robust handling of external API failures
+
+**API Integration Points**:
+- Stock symbols from: `https://trading.vietcap.com.vn/api/price/symbols/getAll`
+- Price data from: `https://trading.vietcap.com.vn/api/chart/OHLCChart/gap-chart`
 
 ## 📋 Prerequisites
 
@@ -114,6 +129,10 @@ npm run start:prod
 - `GET /api/stocks/search` - Search stock symbols with filters (prioritizes symbol matches)
   - Query params: `query`, `symbol`, `board`, `type`, `limit`, `offset`, `sortBy`, `sortOrder`
   - Example: `/api/stocks/search?query=vin&board=HSX&limit=10`
+- `GET /api/stocks/with-prices` - 🆕 **Search symbols with real-time prices from VietCap API**
+  - Query params: `query`, `symbol`, `board`, `type`, `limit`, `offset`, `sortBy`, `sortOrder`, `timeFrame`, `includePrices`
+  - Example: `/api/stocks/with-prices?board=HSX&limit=10&includePrices=true`
+  - [📖 **Detailed Documentation**](./API_STOCKS_WITH_PRICES.md)
 - `GET /api/stocks/quick-search` - Quick search optimized for autocomplete (symbol priority)
   - Query params: `q` (required), `limit`, `board`
   - Example: `/api/stocks/quick-search?q=vnm&limit=5`

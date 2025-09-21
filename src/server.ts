@@ -34,24 +34,25 @@ export async function buildServer(): Promise<FastifyInstance> {
     } : false, // Disable CSP in development for Swagger UI
   });
 
-  await app.register(import('@fastify/cors'), {
-    origin: (origin, cb) => {
-      // Allow requests with no origin (like mobile apps or Postman)
-      if (!origin) {
-        return cb(null, true);
-      }
-      
-      // Check if the origin is in the allowed list
-      const allowedOrigins = config.CORS_ORIGIN;
-      if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
-        cb(null, true);
-      } else {
-        cb(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: config.CORS_CREDENTIALS,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  });
+  // CORS disabled
+  // await app.register(import('@fastify/cors'), {
+  //   origin: (origin, cb) => {
+  //     // Allow requests with no origin (like mobile apps or Postman)
+  //     if (!origin) {
+  //       return cb(null, true);
+  //     }
+  //     
+  //     // Check if the origin is in the allowed list
+  //     const allowedOrigins = config.CORS_ORIGIN;
+  //     if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+  //       cb(null, true);
+  //     } else {
+  //       cb(new Error('Not allowed by CORS'));
+  //     }
+  //   },
+  //   credentials: config.CORS_CREDENTIALS,
+  //   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  // });
 
   await app.register(import('@fastify/sensible'));
 
@@ -156,7 +157,8 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(import('./routes/analysis-reports'), { prefix: '/api/analysis-reports' });
   await app.register(import('./routes/earning-results'), { prefix: '/api' });
   await app.register(import('./routes/proxy'), { prefix: '/proxy' });
-  await app.register(import('./routes/dnse-market-data'), { prefix: '/api/dnse-market' });
+  // Temporarily disabled DNSE market data routes due to MQTT dependency issue
+  // await app.register(import('./routes/dnse-market-data'), { prefix: '/api/dnse-market' });
 
   return app;
 }

@@ -3,7 +3,13 @@
  * Handles WebSocket MQTT connection to DNSE data feed
  */
 
-import * as mqtt from 'mqtt';
+// Optional MQTT import with fallback
+let mqtt: any = null;
+try {
+  mqtt = require('mqtt');
+} catch (error) {
+  console.warn('MQTT package not available, MQTT functionality disabled');
+}
 import { EventEmitter } from 'events';
 import { FastifyBaseLogger } from 'fastify';
 import { DNSEAuthService } from './dnse-auth.service';
