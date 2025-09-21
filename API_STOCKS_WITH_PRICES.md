@@ -407,9 +407,19 @@ function renderStock(stock) {
 ## Security
 
 ### CORS Policy
-API hỗ trợ CORS cho các domain được config:
-- Development: Cho phép tất cả origins
-- Production: Chỉ cho phép domains được whitelist
+API đã được cấu hình CORS để cho phép cross-origin requests:
+- **All Origins Allowed**: `Access-Control-Allow-Origin: *` hoặc specific origin
+- **Methods**: GET, POST, PUT, PATCH, DELETE, OPTIONS
+- **Headers**: Content-Type, Authorization, Origin, Accept
+- **Credentials**: Disabled để tương thích với wildcard origin
+
+**CORS Headers Response**:
+```
+Access-Control-Allow-Origin: http://localhost:8080
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, Origin, Accept
+Vary: Origin
+```
 
 ### Authentication
 - API này **không yêu cầu authentication**

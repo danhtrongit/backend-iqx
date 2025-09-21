@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Test - Stocks API</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { 
+            padding: 10px 20px; 
+            margin: 5px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 3px; 
+            cursor: pointer; 
+        }
+        button:hover { background: #0056b3; }
+        .result { 
+            margin-top: 10px; 
+            padding: 10px; 
+            background: #f8f9fa; 
+            border-radius: 3px; 
+            white-space: pre-wrap; 
+            font-family: monospace; 
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 CORS Test - Stocks API</h1>
+    
+    <div class="test-section">
+        <h3>Test Configuration</h3>
+        <p><strong>Frontend Origin:</strong> <span id="origin"></span></p>
+        <p><strong>API Endpoint:</strong> <input type="text" id="apiUrl" value="http://localhost:3000/api/stocks/with-prices" style="width: 400px;"></p>
+        <p><em>Update the API URL above to test against different servers (localhost:3000, proxy.iqx.vn, etc.)</em></p>
+    </div>
+
+    <div class="test-section">
+        <h3>🚀 API Tests</h3>
+        <button onclick="testBasicStocks()">Test Basic Stocks (no prices)</button>
+        <button onclick="testStocksWithPrices()">Test Stocks with Prices</button>
+        <button onclick="testSearch()">Test Search (VinGroup)</button>
+        <button onclick="testClearResults()">Clear Results</button>
+        
+        <div class="result" id="results">Click a button above to test the API...</div>
+    </div>
+
+    <div class="test-section">
+        <h3>📋 Recent Results</h3>
+        <div id="logs"></div>
+    </div>
+
+    <script>
+        // Display current origin
+        document.getElementById('origin').textContent = window.location.origin;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logs = document.getElementById('logs');
+            const div = document.createElement('div');
+            div.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            div.className = type === 'error' ? 'error' : 'success';
+            div.style.margin = '5px 0';
+            div.style.padding = '5px';
+            div.style.borderRadius = '3px';
+            logs.insertBefore(div, logs.firstChild);
+        }
+
+        function updateResults(content, isError = false) {
+            const results = document.getElementById('results');
+            results.textContent = content;
+            results.className = 'result ' + (isError ? 'error' : 'success');
+        }
+
+        async function makeApiCall(endpoint, description) {
+            const baseUrl = document.getElementById('apiUrl').value;
+            const url = `${baseUrl}${endpoint}`;
+            
+            log(`🔄 Testing: ${description}`);
+            updateResults(`🔄 Loading: ${description}\nURL: ${url}`, false);
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const result = JSON.stringify(data, null, 2);
+                
+                updateResults(`✅ SUCCESS: ${description}\n\nResponse:\n${result}`, false);
+                log(`✅ ${description} - Success (${data.data?.length || 0} items)`, 'success');
+                
+                return data;
+            } catch (error) {
+                const errorMsg = `❌ FAILED: ${description}\n\nError: ${error.message}\n\nURL: ${url}`;
+                updateResults(errorMsg, true);
+                log(`❌ ${description} - Failed: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        async function testBasicStocks() {
+            await makeApiCall('?limit=5&includePrices=false', 'Basic Stocks (No Prices)');
+        }
+
+        async function testStocksWithPrices() {
+            await makeApiCall('?limit=3&board=HSX&includePrices=true', 'Stocks with Prices');
+        }
+
+        async function testSearch() {
+            await makeApiCall('?query=VinGroup&limit=3', 'Search VinGroup');
+        }
+
+        function testClearResults() {
+            updateResults('Results cleared. Click a test button above.', false);
+            log('🧹 Results cleared', 'info');
+        }
+
+        // Auto-test on page load
+        window.onload = function() {
+            log('🚀 CORS Test Page Loaded', 'info');
+            log(`📍 Testing from origin: ${window.location.origin}`, 'info');
+        };
+    </script>
+</body>
+</html>

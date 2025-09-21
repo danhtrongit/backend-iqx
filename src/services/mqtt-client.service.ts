@@ -53,6 +53,12 @@ export class MQTTClientService extends EventEmitter {
    * Connect to MQTT broker
    */
   async connect(): Promise<void> {
+    // Check if MQTT package is available
+    if (!mqtt) {
+      this.logger?.warn('MQTT package not available, skipping connection');
+      return;
+    }
+    
     try {
       // Get credentials
       const { investorId, token } = await this.authService.getMQTTCredentials();
